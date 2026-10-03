@@ -38,7 +38,9 @@ export async function updateSession(request: NextRequest) {
   if (!data?.claims && !isLogin && !isAuthCallback) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const redirected = NextResponse.redirect(url);
+    response.cookies.getAll().forEach(c=>redirected.cookies.set(c));
+    return redirected;
   }
 
   if (data?.claims && isLogin) {
