@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logout } from "@/app/login/actions";
 import {
   BadgeDollarSign, Boxes, ChartNoAxesCombined, ChevronDown, CircleDollarSign,
-  Contact, CreditCard, LayoutDashboard, Megaphone, PackageCheck, Search,
+  CreditCard, LayoutDashboard, LogOut, Megaphone, PackageCheck, Search,
   Settings, ShoppingBag, Truck, UserRoundSearch, UsersRound, WalletCards,
   Warehouse, Bell, MoonStar
 } from "lucide-react";
@@ -40,6 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <Link href="/configuracion" className={pathname==="/configuracion" ? "nav-link active settings" : "nav-link settings"}><Settings size={17}/>Configuración</Link>
+        <form action={logout}><button className="nav-link logout-btn" type="submit"><LogOut size={17}/>Cerrar sesión</button></form>
       </aside>
       <main className="main">
         <header className="topbar">
