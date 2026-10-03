@@ -18,9 +18,9 @@ export default async function Page() {
       <details className="action-popover"><summary className="primary-btn"><Plus size={17}/> Nuevo pedido</summary>
         <form action={createOrder} className="popover-form wide"><h3>Crear pedido</h3>
           <div className="form-grid">
-            <label>Cliente<select name="customer_id" required><option value="">Seleccionar</option>{customers.map((c:any)=><option key={c.id} value={c.id}>{c.full_name}</option>)}</select></label>
-            <label>Producto<select name="product_id" required><option value="">Seleccionar</option>{products.map((p:any)=><option key={p.id} value={p.id}>{p.model} — {"$"+Number(p.sale_price).toFixed(2)}</option>)}</select></label>
-            <label>Proveedor<select name="supplier_id"><option value="">Sin asignar</option>{suppliers.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+            <label>Cliente<select name="customer_id" required><option value="">Seleccionar</option>{(customers ?? []).map((c:any)=><option key={c.id} value={c.id}>{c.full_name}</option>)}</select></label>
+            <label>Producto<select name="product_id" required><option value="">Seleccionar</option>{(products ?? []).map((p:any)=><option key={p.id} value={p.id}>{p.model} — {"$"+Number(p.sale_price).toFixed(2)}</option>)}</select></label>
+            <label>Proveedor<select name="supplier_id"><option value="">Sin asignar</option>{(suppliers ?? []).map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
             <label>Talla<input name="size" required placeholder="42"/></label>
             <label>Cantidad<input name="quantity" type="number" min="1" defaultValue="1"/></label>
             <label>Precio venta<input name="unit_price" type="number" min="0" step="0.01" placeholder="Usa precio del producto"/></label>
@@ -36,8 +36,8 @@ export default async function Page() {
     <div className="card module-card"><div className="table-scroll"><table><thead><tr>
       <th>Pedido</th><th>Cliente</th><th>Producto</th><th>Total</th><th>Pago</th><th>Comercial</th><th>Logística</th><th>Utilidad est.</th>
     </tr></thead><tbody>
-      {orders.length===0?<tr><td colSpan={8} className="empty-cell">Aún no hay pedidos. Crea clientes, productos y luego tu primer pedido.</td></tr>:
-      orders.map((o:any)=>{
+      {(orders ?? []).length===0?<tr><td colSpan={8} className="empty-cell">Aún no hay pedidos. Crea clientes, productos y luego tu primer pedido.</td></tr>:
+      (orders ?? []).map((o:any)=>{
         const item=o.order_items?.[0];
         const profit=Number(o.total)-Number(o.supplier_cost)-Number(o.shipping_cost);
         return <tr key={o.id}>
