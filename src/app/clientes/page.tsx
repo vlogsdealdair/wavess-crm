@@ -21,8 +21,8 @@ export default async function Page() {
       </details>
     </section>
     <div className="card module-card"><div className="table-scroll"><table><thead><tr><th>Nombre</th><th>WhatsApp</th><th>Compras</th><th>Total gastado</th><th>Última compra</th><th>Talla</th><th>Segmento</th></tr></thead><tbody>
-      {customers.length === 0 ? <tr><td colSpan={7} className="empty-cell">Aún no hay clientes. Crea el primero.</td></tr> :
-        customers.map((c:any)=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.whatsapp ?? "—"}</td><td>{c.purchases_count}</td><td>{"$"+Number(c.total_spent).toFixed(2)}</td><td>{c.last_purchase_at ? new Date(c.last_purchase_at).toLocaleDateString("es-EC") : "—"}</td><td>{c.shoe_size ?? "—"}</td><td><span className="badge blue">{c.segment}</span></td></tr>)}
+      {(customers ?? []).length === 0 ? <tr><td colSpan={7} className="empty-cell">Aún no hay clientes. Crea el primero.</td></tr> :
+        (customers ?? []).map((c:any)=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.whatsapp ?? "—"}</td><td>{c.purchases_count}</td><td>{"$"+Number(c.total_spent).toFixed(2)}</td><td>{c.last_purchase_at ? new Date(c.last_purchase_at).toLocaleDateString("es-EC") : "—"}</td><td>{c.shoe_size ?? "—"}</td><td><span className="badge blue">{c.segment}</span></td></tr>)}
     </tbody></table></div></div>
   </AppShell>;
 }
