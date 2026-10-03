@@ -16,7 +16,7 @@ export default async function Page() {
       </details>
     </section>
     <div className="card module-card"><div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Contacto</th><th>WhatsApp</th><th>Calidad</th><th>Entrega</th><th>Estado</th></tr></thead><tbody>
-      {suppliers.length===0?<tr><td colSpan={6} className="empty-cell">Aún no hay proveedores.</td></tr>:suppliers.map((s:any)=><tr key={s.id}><td><b>{s.name}</b></td><td>{s.contact_name ?? "—"}</td><td>{s.whatsapp ?? "—"}</td><td>{s.quality ?? "—"}</td><td>{s.average_delivery_days ? s.average_delivery_days+" días" : "—"}</td><td><span className="badge green">{s.status}</span></td></tr>)}
+      {(suppliers ?? []).length===0?<tr><td colSpan={6} className="empty-cell">Aún no hay proveedores.</td></tr>:(suppliers ?? []).map((s:any)=><tr key={s.id}><td><b>{s.name}</b></td><td>{s.contact_name ?? "—"}</td><td>{s.whatsapp ?? "—"}</td><td>{s.quality ?? "—"}</td><td>{s.average_delivery_days ? s.average_delivery_days+" días" : "—"}</td><td><span className="badge green">{s.status}</span></td></tr>)}
     </tbody></table></div></div>
   </AppShell>;
 }
