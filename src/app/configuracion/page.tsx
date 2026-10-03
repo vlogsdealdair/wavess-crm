@@ -1,0 +1,2 @@
+import { AppShell } from "@/components/app-shell";
+export default function Page(){return <AppShell><section className="page-head"><div><p className="eyebrow">SISTEMA</p><h1>Configuración</h1><p>Preferencias generales de WAVESS.</p></div></section><div className="card finance-placeholder"><span className="kicker">CUENTA</span><h3>Administrador · USD · Ecuador</h3><p>La gestión avanzada de usuarios, branding y automatizaciones se añadirá en la siguiente fase.</p></div></AppShell>}
