@@ -8,11 +8,11 @@ export default async function Page(){
     supabase.from("orders").select("total,paid_amount,supplier_cost,shipping_cost,commission_cost,advertising_cost,other_cost,commercial_status"),
     supabase.from("expenses").select("amount")
   ]);
-  const valid=orders.filter((o:any)=>o.commercial_status!=="Cancelado");
+  const valid=(orders ?? []).filter((o:any)=>o.commercial_status!=="Cancelado");
   const sales=valid.reduce((s:number,o:any)=>s+Number(o.total),0);
   const collected=valid.reduce((s:number,o:any)=>s+Number(o.paid_amount),0);
   const direct=valid.reduce((s:number,o:any)=>s+Number(o.supplier_cost)+Number(o.shipping_cost)+Number(o.commission_cost)+Number(o.advertising_cost)+Number(o.other_cost),0);
-  const expensesTotal=expenses.reduce((s:number,e:any)=>s+Number(e.amount),0);
+  const expensesTotal=(expenses ?? []).reduce((s:number,e:any)=>s+Number(e.amount),0);
   const costs=direct+expensesTotal;
   const profit=sales-costs;
   const receivable=valid.reduce((s:number,o:any)=>s+Math.max(0,Number(o.total)-Number(o.paid_amount)),0);
