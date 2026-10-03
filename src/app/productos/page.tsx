@@ -17,7 +17,7 @@ export default async function Page() {
       </details>
     </section>
     <div className="card module-card"><div className="table-scroll"><table><thead><tr><th>SKU</th><th>Modelo</th><th>Marca</th><th>Calidad</th><th>Tallas</th><th>Precio</th><th>Estado</th></tr></thead><tbody>
-      {products.length===0?<tr><td colSpan={7} className="empty-cell">Aún no hay productos.</td></tr>:products.map((p:any)=><tr key={p.id}><td><b>{p.sku ?? "—"}</b></td><td>{p.model}</td><td>{p.brand}</td><td>{p.quality}</td><td>{(p.sizes ?? []).join(", ") || "—"}</td><td>{"$"+Number(p.sale_price).toFixed(2)}</td><td><span className="badge green">{p.status}</span></td></tr>)}
+      {(products ?? []).length===0?<tr><td colSpan={7} className="empty-cell">Aún no hay productos.</td></tr>:(products ?? []).map((p:any)=><tr key={p.id}><td><b>{p.sku ?? "—"}</b></td><td>{p.model}</td><td>{p.brand}</td><td>{p.quality}</td><td>{(p.sizes ?? []).join(", ") || "—"}</td><td>{"$"+Number(p.sale_price).toFixed(2)}</td><td><span className="badge green">{p.status}</span></td></tr>)}
     </tbody></table></div></div>
   </AppShell>;
 }
