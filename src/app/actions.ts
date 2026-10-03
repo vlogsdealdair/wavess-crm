@@ -161,3 +161,19 @@ export async function updateLeadStatus(formData: FormData) {
   revalidatePath("/leads");
   revalidatePath("/dashboard");
 }
+
+
+export async function createExpense(formData: FormData) {
+  const { supabase, user } = await auth();
+  const { error } = await supabase.from("expenses").insert({
+    owner_id: user.id,
+    category: text(formData, "category"),
+    description: text(formData, "description"),
+    amount: number(formData, "amount"),
+    expense_date: text(formData, "expense_date") || new Date().toISOString().slice(0,10),
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/gastos");
+  revalidatePath("/finanzas");
+  revalidatePath("/dashboard");
+}
