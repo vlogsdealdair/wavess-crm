@@ -131,3 +131,33 @@ export async function updateOrderStatus(formData: FormData) {
   revalidatePath("/pedidos");
   revalidatePath("/dashboard");
 }
+
+
+export async function createLead(formData: FormData) {
+  const { supabase, user } = await auth();
+  const { error } = await supabase.from("leads").insert({
+    owner_id: user.id,
+    full_name: text(formData, "full_name"),
+    whatsapp: nullable(text(formData, "whatsapp")),
+    instagram: nullable(text(formData, "instagram")),
+    source: nullable(text(formData, "source")),
+    interested_product: nullable(text(formData, "interested_product")),
+    shoe_size: nullable(text(formData, "shoe_size")),
+    status: text(formData, "status") || "Nuevo",
+    next_follow_up_at: nullable(text(formData, "next_follow_up_at")),
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+}
+
+export async function updateLeadStatus(formData: FormData) {
+  const { supabase } = await auth();
+  const { error } = await supabase.from("leads").update({
+    status: text(formData, "status"),
+    last_contact_at: new Date().toISOString(),
+  }).eq("id", text(formData, "lead_id"));
+  if (error) throw new Error(error.message);
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+}
