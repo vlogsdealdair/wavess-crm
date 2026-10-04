@@ -153,16 +153,51 @@ export async function createOrder(formData: FormData) {
   revalidatePath("/finanzas");
 }
 
-export async function registerPayment(fd:FormData) {
- const {supabase,user}=await auth();
+async function paymentValues(fd:FormData,supabase:Awaited<ReturnType<typeof createClient>>,ownerId:string){
  const method=text(fd,"method");
- const {data:custom}=await supabase.from("payment_methods").select("name").eq("owner_id",user.id);
- if(![...DEFAULT_METHODS,...(custom??[]).map(m=>m.name)].includes(method)) throw new Error("Selecciona un método de pago válido");
- const amount=money(fd,"amount");if(amount<=0) throw new Error("El pago debe ser mayor a cero");
- const date=text(fd,"paid_date");if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("Selecciona una fecha válida");
- const {error}=await supabase.from("payments").insert({owner_id:user.id,order_id:text(fd,"order_id"),amount,method,bank:nullable(text(fd,"bank")),reference:nullable(text(fd,"reference")),paid_at:date+"T12:00:00-05:00"});
- if(error) throw new Error(error.message);
- ["/pagos","/pedidos","/dashboard","/finanzas","/despachos"].forEach(p=>revalidatePath(p));
+ const {data:custom,error}=await supabase.from("payment_methods").select("name").eq("owner_id",ownerId);
+ if(error) throw new Error("No se pudieron cargar los métodos");
+ if(![...DEFAULT_METHODS,...(custom??[]).map(m=>m.name)].includes(method)) throw new Error("Selecciona un método válido");
+ const amount=money(fd,"amount"); if(amount<=0) throw new Error("El monto debe ser mayor a cero");
+ const date=text(fd,"paid_date");
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date+"T12:00:00-05:00")))throw new Error("Fecha inválida");
+ const bank=["Transferencia","Depósito"].includes(method)?nullable(text(fd,"bank")):null;
+ if(["Transferencia","Depósito"].includes(method)&&!bank)throw new Error("Selecciona el banco receptor");
+ return {amount,method,bank,reference:nullable(text(fd,"reference")),paid_at:date+"T12:00:00-05:00"};
+}
+function refreshPayments(){["/pagos","/pedidos","/dashboard","/finanzas","/despachos"].forEach(p=>revalidatePath(p));}
+export async function registerPayment(fd:FormData){
+ const {supabase,user}=await auth();const values=await paymentValues(fd,supabase,user.id);
+ const {error}=await supabase.from("payments").insert({...values,owner_id:user.id,order_id:text(fd,"order_id")});
+ if(error)throw new Error(error.message); refreshPayments();
+}
+export async function updatePayment(fd:FormData){
+ const {supabase,user}=await auth();const values=await paymentValues(fd,supabase,user.id);
+ const {data,error}=await supabase.from("payments").update(values).eq("id",text(fd,"payment_id")).eq("owner_id",user.id).select("id").single();
+ if(error||!data)throw new Error(error?.message??"Pago no disponible");refreshPayments();
+}
+export async function deletePayment(fd:FormData){
+ if(text(fd,"confirm_delete")!=="yes")throw new Error("Confirma la eliminación del pago");
+ const {supabase,user}=await auth();
+ const {data,error}=await supabase.from("payments").delete().eq("id",text(fd,"payment_id")).eq("owner_id",user.id).select("id").single();
+ if(error||!data)throw new Error(error?.message??"Pago no disponible");refreshPayments();
+}
+export async function updateDelivery(fd:FormData){
+ const {supabase,user}=await auth();const type=text(fd,"delivery_type");
+ if(!["Local","Nacional","Retiro"].includes(type))throw new Error("Selecciona entrega cercana, a distancia o retiro");
+ const {data,error}=await supabase.from("orders").update({
+ delivery_type:type,delivery_city:nullable(text(fd,"delivery_city")),delivery_address:nullable(text(fd,"delivery_address")),
+ delivery_recipient:nullable(text(fd,"delivery_recipient")),delivery_phone:nullable(text(fd,"delivery_phone")),
+ delivery_notes:nullable(text(fd,"delivery_notes")),delivery_carrier:nullable(text(fd,"delivery_carrier")),tracking_number:nullable(text(fd,"tracking_number"))
+ }).eq("id",text(fd,"order_id")).eq("owner_id",user.id).select("id").single();
+ if(error||!data)throw new Error(error?.message??"Pedido no disponible");
+ revalidatePath("/despachos");revalidatePath("/pedidos");
+}
+export async function dispatchOrder(fd:FormData){
+ const {supabase,user}=await auth();const next=text(fd,"next_status");if(!["Despachado","Entregado"].includes(next))throw new Error("Estado inválido");
+ const {data,error}=await supabase.from("orders").update({logistics_status:next}).eq("id",text(fd,"order_id")).eq("owner_id",user.id).select("id").single();
+ if(error||!data)throw new Error(error?.message??"Pedido no disponible");
+ revalidatePath("/despachos");revalidatePath("/pedidos");revalidatePath("/dashboard");
 }
 
 export async function updateOrderStatus(formData: FormData) {

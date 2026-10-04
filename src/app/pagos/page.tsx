@@ -1,25 +1,26 @@
-
-import { AppShell } from "@/components/app-shell";
-import { ActionForm } from "@/components/action-form";
-import { registerPayment,createPaymentMethod } from "@/app/actions";
-import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_METHODS } from "@/lib/payment-methods";
+import {AppShell} from "@/components/app-shell";
+import {ActionForm} from "@/components/action-form";
+import {PaymentFields} from "@/components/payment-fields";
+import {registerPayment,updatePayment,deletePayment} from "@/app/actions";
+import {createClient} from "@/lib/supabase/server";
+import {DEFAULT_METHODS} from "@/lib/payment-methods";
+import Link from "next/link";
 export default async function Page(){
- const s=await createClient();
- const [pr,or,mr]=await Promise.all([
+ const s=await createClient();const [pr,or,mr]=await Promise.all([
  s.from("payments").select("id,amount,method,bank,reference,paid_at,orders(order_number,customers(full_name))").order("paid_at",{ascending:false}),
  s.from("orders").select("id,order_number,total,paid_amount,customers(full_name)").neq("payment_status","Pagado").neq("commercial_status","Cancelado").order("created_at",{ascending:false}),
  s.from("payment_methods").select("name").order("name")]);
- if(pr.error||or.error||mr.error) throw new Error("No se pudieron cargar los pagos");
+ if(pr.error||or.error||mr.error)throw new Error("No se pudieron cargar los pagos");
  const methods=[...DEFAULT_METHODS,...(mr.data??[]).map(m=>m.name)];
- return <AppShell><section className="page-head"><div><p className="eyebrow">VENTAS</p><h1>Pagos</h1><p>Registra abonos, identifica el método y consulta el saldo actualizado.</p></div></section>
- <section className="grid-2"><div className="card editor-card"><h3>Registrar pago</h3>
- <ActionForm action={registerPayment} className="popover-form inline-form">
- <label>Pedido<select name="order_id" required><option value="">Seleccionar pedido</option>{(or.data??[]).map((o:any)=><option key={o.id} value={o.id}>{o.order_number+" · "+(o.customers?.full_name??"Cliente")+" · Saldo $"+(Number(o.total)-Number(o.paid_amount)).toFixed(2)}</option>)}</select></label>
- <div className="form-grid"><label>Monto<input name="amount" type="number" min="0.01" step="0.01" required/></label><label>Método<select name="method" required>{methods.map(m=><option key={m}>{m}</option>)}</select></label>
- <label>Banco / entidad<input name="bank" placeholder="Banco Pichincha, Guayaquil…"/></label><label>Fecha del pago<input name="paid_date" type="date" defaultValue={new Intl.DateTimeFormat("en-CA",{timeZone:"America/Guayaquil"}).format(new Date())} required/></label></div>
- <label>Referencia / comprobante<input name="reference" placeholder="Número de transferencia o depósito"/></label><p>Para transferencias y depósitos, banco y referencia son obligatorios. El monto no puede superar el saldo.</p>
- </ActionForm></div><div className="card editor-card"><h3>Métodos de pago</h3><p>{methods.join(" · ")}</p><ActionForm action={createPaymentMethod} className="popover-form inline-form"><label>Nuevo método<input name="name" maxLength={80} required placeholder="Ej. DeUna"/></label></ActionForm></div></section>
- <div className="card module-card"><div className="table-scroll"><table><thead><tr>{["Fecha","Pedido","Cliente","Monto","Método","Banco","Referencia"].map(t=><th key={t}>{t}</th>)}</tr></thead><tbody>
- {(pr.data??[]).length===0?<tr><td colSpan={7} className="empty-cell">Aún no hay pagos registrados.</td></tr>:(pr.data??[]).map((p:any)=><tr key={p.id}><td>{new Date(p.paid_at).toLocaleDateString("es-EC",{timeZone:"America/Guayaquil"})}</td><td>{p.orders?.order_number}</td><td>{p.orders?.customers?.full_name}</td><td>{"$"+Number(p.amount).toFixed(2)}</td><td>{p.method}</td><td>{p.bank??"—"}</td><td>{p.reference??"—"}</td></tr>)}</tbody></table></div></div></AppShell>;
+ return <AppShell><section className="page-head"><div><p className="eyebrow">VENTAS</p><h1>Pagos</h1><p>Registra cobros y corrige pagos desde su fila. El saldo se recalcula automáticamente.</p></div><Link className="secondary-btn" href="/configuracion">Configurar métodos</Link></section>
+ <section className="card editor-card"><h3>Registrar pago</h3><ActionForm action={registerPayment} className="popover-form inline-form" submitLabel="Registrar pago">
+ <label>Pedido<select name="order_id" required><option value="">Seleccionar pedido</option>{(or.data??[]).map((o:any)=><option key={o.id} value={o.id}>{o.order_number+" · "+(o.customers?.full_name??"Cliente")+" · Saldo $"+(Number(o.total)-Number(o.paid_amount)).toFixed(2)}</option>)}</select></label><PaymentFields methods={methods}/></ActionForm></section>
+ <div className="card module-card"><div className="table-scroll"><table><thead><tr>{["Fecha","Pedido","Cliente","Monto","Cómo se recibió","Banco","Acciones"].map(t=><th key={t}>{t}</th>)}</tr></thead><tbody>
+ {(pr.data??[]).length===0?<tr><td colSpan={7} className="empty-cell">Aún no hay pagos.</td></tr>:(pr.data??[]).map((p:any)=>{
+ const date=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Guayaquil"}).format(new Date(p.paid_at));
+ const opts=methods.includes(p.method)?methods:[...methods,p.method];
+ return <tr key={p.id}><td>{date}</td><td>{p.orders?.order_number}</td><td>{p.orders?.customers?.full_name}</td><td>{"$"+Number(p.amount).toFixed(2)}</td><td>{p.method}<small className="cell-sub">{p.reference}</small></td><td>{p.bank??"—"}</td><td>
+ <details><summary>Editar pago</summary><ActionForm key={JSON.stringify(p)} action={updatePayment} className="popover-form inline-form" submitLabel="Guardar cambios"><input type="hidden" name="payment_id" value={p.id}/><PaymentFields methods={opts} payment={{amount:Number(p.amount),method:p.method,bank:p.bank,reference:p.reference,paid_date:date}}/></ActionForm></details>
+ <details><summary>Eliminar pago</summary><ActionForm action={deletePayment} className="popover-form inline-form" submitLabel="Eliminar este pago"><input type="hidden" name="payment_id" value={p.id}/><p>Se eliminará este abono y aumentará el saldo del pedido. Revisa si ya fue despachado.</p><label><input type="checkbox" name="confirm_delete" value="yes" required/> Confirmo eliminar el pago de {"$"+Number(p.amount).toFixed(2)}</label></ActionForm></details>
+ </td></tr>;})}</tbody></table></div></div></AppShell>;
 }
