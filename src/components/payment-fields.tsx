@@ -2,7 +2,7 @@
 import {useState} from "react";
 import {BANKS} from "@/lib/payment-methods";
 export function PaymentFields({methods,payment}:{methods:string[];payment?:{amount:number;method:string;bank:string|null;reference:string|null;paid_date:string}}){
- const [method,setMethod]=useState(payment?.method??methods[0]);
+ const [method,setMethod]=useState(payment?.method??(methods.includes("Transferencia")?"Transferencia":methods[0]??""));
  const bankNeeded=["Transferencia","Depósito"].includes(method);
  const banks=[...BANKS]; if(payment?.bank&&!banks.includes(payment.bank))banks.push(payment.bank);
  return <><div className="form-grid">
