@@ -1,0 +1,1 @@
+export function WavessLogo({className=""}:{className?:string}){return <svg className={"wavess-logo "+className} viewBox="184 472 1536 196" role="img" aria-label="WAVESS"><title>WAVESS</title><image href="/wavess-logo-blanco.png" width="1921" height="1081"/></svg>;}

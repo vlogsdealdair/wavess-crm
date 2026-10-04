@@ -1,3 +1,4 @@
+import {RecordControls} from "@/components/record-controls";
 import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
 import { createLead, updateLeadStatus } from "@/app/actions";
@@ -19,11 +20,11 @@ export default async function Page() {
         </div></ActionForm>
       </details>
     </section>
-    <div className="card module-card"><div className="table-scroll"><table><thead><tr><th>Nombre</th><th>Contacto</th><th>Interés</th><th>Talla</th><th>Origen</th><th>Seguimiento</th><th>Estado</th></tr></thead><tbody>
-      {(leads ?? []).length===0?<tr><td colSpan={7} className="empty-cell">Aún no hay leads.</td></tr>:(leads ?? []).map((l:any)=><tr key={l.id}>
+    <div className="card module-card"><div className="table-scroll"><table><thead><tr><th>Nombre</th><th>Contacto</th><th>Interés</th><th>Talla</th><th>Origen</th><th>Seguimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+      {(leads ?? []).length===0?<tr><td colSpan={8} className="empty-cell">Aún no hay leads.</td></tr>:(leads ?? []).map((l:any)=><tr key={l.id}>
         <td><b>{l.full_name}</b></td><td>{l.whatsapp ?? l.instagram ?? "—"}</td><td>{l.interested_product ?? "—"}</td><td>{l.shoe_size ?? "—"}</td><td>{l.source ?? "—"}</td>
         <td>{l.next_follow_up_at ? new Date(l.next_follow_up_at).toLocaleString("es-EC") : "—"}</td>
-        <td><ActionForm action={updateLeadStatus} className="status-form"><input type="hidden" name="lead_id" value={l.id}/><select name="status" defaultValue={l.status}><option>Nuevo</option><option>Contactado</option><option>Seguimiento</option><option>Ganado</option><option>Perdido</option></select></ActionForm></td>
+        <td><ActionForm action={updateLeadStatus} className="status-form"><input type="hidden" name="lead_id" value={l.id}/><select name="status" defaultValue={l.status}><option>Nuevo</option><option>Contactado</option><option>Seguimiento</option><option>Ganado</option><option>Perdido</option></select></ActionForm></td><td><RecordControls table="leads" row={l} label={l.full_name} fields={[{"key":"full_name","label":"Nombre","type":"text","required":true},{"key":"whatsapp","label":"WhatsApp","type":"text","required":false},{"key":"instagram","label":"Instagram","type":"text","required":false},{"key":"source","label":"Origen","type":"text","required":false},{"key":"interested_product","label":"Producto de interés","type":"text","required":false},{"key":"shoe_size","label":"Talla","type":"text","required":false},{"key":"status","label":"Estado","type":"text","required":false,"options":["Nuevo","Contactado","Seguimiento","Ganado","Perdido"]},{"key":"next_follow_up_at","label":"Seguimiento","type":"datetime-local","required":false}]}/></td>
       </tr>)}
     </tbody></table></div></div>
   </AppShell>;

@@ -1,3 +1,4 @@
+import {RecordControls} from "@/components/record-controls";
 import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
 import { createCustomer } from "@/app/actions";
@@ -21,9 +22,9 @@ export default async function Page() {
         </ActionForm>
       </details>
     </section>
-    <div className="card module-card"><div className="table-scroll"><table><thead><tr><th>Nombre</th><th>WhatsApp</th><th>Compras</th><th>Total gastado</th><th>Última compra</th><th>Talla</th><th>Segmento</th></tr></thead><tbody>
-      {(customers ?? []).length === 0 ? <tr><td colSpan={7} className="empty-cell">Aún no hay clientes. Crea el primero.</td></tr> :
-        (customers ?? []).map((c:any)=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.whatsapp ?? "—"}</td><td>{c.purchases_count}</td><td>{"$"+Number(c.total_spent).toFixed(2)}</td><td>{c.last_purchase_at ? new Date(c.last_purchase_at).toLocaleDateString("es-EC") : "—"}</td><td>{c.shoe_size ?? "—"}</td><td><span className="badge blue">{c.segment}</span></td></tr>)}
+    <div className="card module-card"><div className="table-scroll"><table><thead><tr><th>Nombre</th><th>WhatsApp</th><th>Compras</th><th>Total gastado</th><th>Última compra</th><th>Talla</th><th>Segmento</th><th>Acciones</th></tr></thead><tbody>
+      {(customers ?? []).length === 0 ? <tr><td colSpan={8} className="empty-cell">Aún no hay clientes. Crea el primero.</td></tr> :
+        (customers ?? []).map((c:any)=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.whatsapp ?? "—"}</td><td>{c.purchases_count}</td><td>{"$"+Number(c.total_spent).toFixed(2)}</td><td>{c.last_purchase_at ? new Date(c.last_purchase_at).toLocaleDateString("es-EC") : "—"}</td><td>{c.shoe_size ?? "—"}</td><td><span className="badge blue">{c.segment}</span></td><td><RecordControls table="customers" row={c} label={c.full_name} fields={[{"key":"full_name","label":"Nombre","type":"text","required":true},{"key":"whatsapp","label":"WhatsApp","type":"text","required":false},{"key":"instagram","label":"Instagram","type":"text","required":false},{"key":"email","label":"Correo","type":"email","required":false},{"key":"shoe_size","label":"Talla","type":"text","required":false},{"key":"preferred_brand","label":"Marca preferida","type":"text","required":false},{"key":"segment","label":"Segmento","type":"text","required":false},{"key":"notes","label":"Notas","type":"textarea","required":false}]} warning="Los pedidos se conservarán sin este cliente vinculado. Se eliminarán sus notas."/></td></tr>)}
     </tbody></table></div></div>
   </AppShell>;
 }

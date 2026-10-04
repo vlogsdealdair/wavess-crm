@@ -1,8 +1,10 @@
-
-import {AppShell} from "@/components/app-shell";
-import {ActionForm} from "@/components/action-form";
-import {createPaymentMethod} from "@/app/actions";
-import {createClient} from "@/lib/supabase/server";
-import {DEFAULT_METHODS} from "@/lib/payment-methods";
-export default async function Page(){const s=await createClient();const {data:{user}}=await s.auth.getUser();const {data:methods,error}=await s.from("payment_methods").select("name").order("name");if(error) throw new Error(error.message);
-return <AppShell><section className="page-head"><div><p className="eyebrow">SISTEMA</p><h1>Configuración</h1><p>Cuenta, métodos de pago y ayuda.</p></div></section><section className="grid-2"><div className="card editor-card"><h3>Administrador</h3><p>Usuario: leandroaldair</p><p>Correo: {user?.email}</p><p>Moneda: USD · Zona horaria: Ecuador</p><a href="/ayuda" className="secondary-btn">Cómo usar cada módulo</a></div><div className="card editor-card"><h3>Métodos de pago</h3><p>{[...DEFAULT_METHODS,...(methods??[]).map(m=>m.name)].join(" · ")}</p><ActionForm action={createPaymentMethod} className="popover-form inline-form"><label>Agregar método<input name="name" maxLength={80} required placeholder="Ej. DeUna"/></label></ActionForm></div></section></AppShell>;}
+import {AppShell} from "@/components/app-shell";import {ActionForm} from "@/components/action-form";
+import {createPaymentMethod,updatePaymentMethod} from "@/app/actions";import {DeleteRecord} from "@/components/record-controls";import {createClient} from "@/lib/supabase/server";import {BANKS} from "@/lib/payment-methods";
+export default async function Page(){const s=await createClient();const {data:{user}}=await s.auth.getUser();const {data:methods,error}=await s.from("payment_methods").select("id,name").order("name");if(error)throw new Error(error.message);
+ return <AppShell><section className="page-head"><div><p className="eyebrow">SISTEMA</p><h1>Configuración</h1><p>Controla tus opciones de cobro y la información de tu negocio.</p></div></section><section className="grid-2">
+ <div className="card editor-card"><h3>Administrador</h3><p>Usuario: leandroaldair</p><p>{user?.email}</p><p>Moneda USD · Ecuador</p><a href="/ayuda" className="secondary-btn">Guía de operación</a><h3>Bancos receptores</h3><p>{BANKS.join(" · ")}</p><p>El banco identifica dónde recibiste el dinero; el método indica si fue transferencia, depósito, efectivo u otro.</p></div>
+ <div className="card editor-card"><h3>Métodos de pago</h3><p>Editar o eliminar un método cambia la lista para nuevos cobros. Los pagos anteriores conservan el nombre que tenían y pueden corregirse en Pagos.</p>
+ <ActionForm action={createPaymentMethod} className="popover-form inline-form" submitLabel="Agregar método"><label>Nombre<input name="name" maxLength={80} required placeholder="Ej. Transferencia, Depósito, DeUna"/></label></ActionForm>
+ <div className="method-list">{(methods??[]).map(m=><div key={m.id} className="method-item"><strong>{m.name}</strong><details><summary>Editar nombre</summary><ActionForm key={m.name} action={updatePaymentMethod} className="popover-form inline-form" submitLabel="Renombrar"><input type="hidden" name="method_id" value={m.id}/><label>Nombre<input name="name" defaultValue={m.name} maxLength={80} required/></label></ActionForm></details><DeleteRecord table="payment_methods" id={m.id} label={m.name} warning="Se quitará de nuevos cobros. Los pagos anteriores se conservan."/></div>)}</div>
+ </div></section></AppShell>;
+}
