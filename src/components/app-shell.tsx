@@ -12,13 +12,15 @@ import {
 } from "lucide-react";
 
 const groups = [
-  { label: "PRINCIPAL", items: [["Dashboard","/dashboard",LayoutDashboard]] },
-  { label: "CRM", items: [["Clientes","/clientes",UsersRound],["Leads","/leads",UserRoundSearch],["Remarketing","/remarketing",Megaphone]] },
-  { label: "VENTAS", items: [["Pedidos","/pedidos",ShoppingBag],["Pagos","/pagos",CreditCard],["Despachos","/despachos",Truck]] },
-  { label: "CATÁLOGO", items: [["Productos","/productos",Boxes],["Combos","/combos",Boxes],["Categorías","/categorias",PackageCheck]] },
-  { label: "OPERACIONES", items: [["Proveedores","/proveedores",Warehouse],["Compras","/compras",PackageCheck]] },
-  { label: "FINANZAS", items: [["Resumen","/finanzas",ChartNoAxesCombined],["Ingresos","/ingresos",BadgeDollarSign],["Gastos","/gastos",WalletCards],["Utilidad","/utilidad",CircleDollarSign]] },
+ {label:"MI NEGOCIO",items:[["Inicio","/dashboard",LayoutDashboard],["Clientes","/clientes",UsersRound],["Ventas y entregas","/pedidos",ShoppingBag],["Catálogo","/productos",Boxes],["Proveedores","/proveedores",Warehouse],["Finanzas","/finanzas",ChartNoAxesCombined]]}
 ];
+const sections=[
+ [["Clientes","/clientes"],["Interesados","/leads"],["Seguimiento","/remarketing"]],
+ [["Pedidos","/pedidos"],["Pagos","/pagos"],["Compras","/compras"],["Despachos","/despachos"]],
+ [["Productos","/productos"],["Combos","/combos"],["Calidades","/categorias"]],
+ [["Resumen","/finanzas"],["Gastos","/gastos"]]
+];
+const parentRoute=(path:string)=>{const section=sections.find(s=>s.some(([,href])=>href===path));return section?.[0][1]??path;};
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -36,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <p>{group.label}</p>
               {group.items.map(([label,href,Icon]) => {
                 const ActiveIcon = Icon as typeof LayoutDashboard;
-                const active = pathname === href;
+                const active = parentRoute(pathname) === href;
                 return <Link key={href as string} href={href as string} className={active ? "nav-link active" : "nav-link"}><ActiveIcon size={17}/><span>{label as string}</span></Link>;
               })}
             </div>
@@ -55,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/configuracion" className="profile"><div className="avatar">L</div><div><strong>Leandro</strong><small>Administrador</small></div><ChevronDown size={16}/></Link>
           </div>
         </header>
-        <div className="content">{children}</div>
+        <div className="content">{sections.filter(s=>s.some(([,href])=>href===pathname)).map((section,i)=><nav key={i} aria-label="Secciones" style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:24}}>{section.map(([label,href])=><Link key={href} href={href} aria-current={pathname===href?"page":undefined} className={pathname===href?"primary-btn":"secondary-btn"}>{label}</Link>)}</nav>)}{children}</div>
       </main>
     </div>
   );
