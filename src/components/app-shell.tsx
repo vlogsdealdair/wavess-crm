@@ -1,5 +1,6 @@
 "use client";
 
+import {WavessLogo} from "./wavess-logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {useState} from "react";
@@ -29,8 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className={"app"+(dark?" wavess-dark":"")}>
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark"><span/><span/><span/></div>
-          <div><strong>WAVESS</strong><small>Commerce Management System</small></div>
+          <div className="brand-identity"><WavessLogo/><small>Gestión comercial</small></div>
         </div>
         <nav>
           {groups.map((group) => (

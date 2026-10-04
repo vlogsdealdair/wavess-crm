@@ -40,7 +40,7 @@ Selecciona cliente, producto o combo, proveedor, cantidad y variantes. Deja prec
 
 ## Pagos
 
-Selecciona un pedido con saldo, escribe monto, método y fecha. Transferencia y Depósito requieren banco y referencia. Guarda: el abono recalcula el saldo. Puedes añadir métodos personalizados en esta pantalla o en Configuración.
+Selecciona el pedido, monto, método y fecha. Transferencia y Depósito usan un selector de banco. La referencia es opcional. Desde cada fila abre Editar pago o Eliminar pago. Puedes corregir montos aunque exista un exceso: el sistema muestra ese exceso para revisión. La eliminación recalcula el saldo. Los métodos se agregan, renombrar y eliminan en Configuración; los pagos históricos conservan su nombre original y pueden corregirse.
 
 ## Compras
 
@@ -48,7 +48,9 @@ Consulta pedidos pendientes de compra, comprados o en tránsito. Usa Pedidos par
 
 ## Despachos
 
-Revisa pedidos recibidos y listos. Si hay saldo pendiente, no despaches: registra el cobro en Pagos. En Pedidos cambia a Despachado y después a Entregado. El sistema bloquea esos cambios si el pedido tiene deuda o está cancelado.
+En Ventas y entregas abre Despachos. Selecciona una de las 24 capitales provinciales u Otra ciudad y escribe el sector manualmente. Completa dirección, destinatario, teléfono y tipo de entrega. Registra transportista y guía para envíos a distancia. Indica si hubo gasto de envío: este costo reduce la utilidad, no incrementa lo cobrado al cliente. Evita registrarlo también en Gastos.
+
+Listos para salir muestra producto recibido, pago completo y destino configurado. Usa filtros para ver pendientes, bloqueados, enviados y entregados; marca despacho y confirma entrega desde aquí.
 
 ## Resumen financiero
 
@@ -56,7 +58,7 @@ Consulta ventas, costos directos, gastos, utilidad neta, caja estimada y por cob
 
 ## Ingresos
 
-Abre actualmente el mismo resumen financiero. Para ver cobros individuales, entra en Pagos.
+Ingresos y Utilidad están reunidos en Finanzas. Los cobros individuales se consultan en Ventas y entregas → Pagos.
 
 ## Gastos
 
@@ -77,3 +79,7 @@ Inicia sesión con leandroaldair o su correo. En el primer acceso activa la cuen
 ## Ganancia y margen
 
 Ganancia estimada = precio de venta − costo del producto o combo. Margen = ganancia ÷ precio de venta × 100. Ejemplo: costo $30, venta $50, ganancia $20, margen 40%. La utilidad final descuenta envíos, comisiones, publicidad y gastos.
+
+## Control de registros
+
+Las acciones Editar y Eliminar están disponibles en clientes, interesados, proveedores y gastos. Productos y combos permiten edición y eliminación. Pedidos permite corregir cliente, proveedor, partidas y costos; eliminar un pedido elimina sus partidas y pagos, con confirmación. Los totales y las métricas se recalculan.

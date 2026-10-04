@@ -1,3 +1,5 @@
+import {OrderEditor} from "@/components/order-editor";
+import {DeleteRecord} from "@/components/record-controls";
 import { AppShell } from "@/components/app-shell";
 import { createOrder, updateOrderStatus } from "@/app/actions";
 import { createClient } from "@/lib/supabase/server";
@@ -7,7 +9,7 @@ import { Plus } from "lucide-react";
 export default async function Page() {
   const supabase = await createClient();
   const [{ data: orders = [] }, { data: customers = [] }, { data: products = [] }, { data: suppliers = [] }] = await Promise.all([
-    supabase.from("orders").select("id,order_number,commercial_status,payment_status,logistics_status,total,paid_amount,supplier_cost,shipping_cost,customers(full_name),suppliers(name),order_items(product_name,size)").order("created_at",{ascending:false}),
+    supabase.from("orders").select("id,order_number,customer_id,supplier_id,notes,commercial_status,payment_status,logistics_status,total,paid_amount,supplier_cost,shipping_cost,customers(full_name),suppliers(name),order_items(id,product_name,size,quantity,unit_price,unit_cost)").order("created_at",{ascending:false}),
     supabase.from("customers").select("id,full_name").order("full_name"),
     supabase.from("products").select("id,model,sale_price,sizes,cost_price,combo_items").eq("status","Activo").order("model"),
     supabase.from("suppliers").select("id,name").eq("status","Activo").order("name"),
@@ -34,9 +36,9 @@ export default async function Page() {
     </section>
 
     <div className="card module-card"><div className="table-scroll"><table><thead><tr>
-      <th>Pedido</th><th>Cliente</th><th>Producto</th><th>Total</th><th>Pago</th><th>Comercial</th><th>Logística</th><th>Utilidad est.</th>
+      <th>Pedido</th><th>Cliente</th><th>Producto</th><th>Total</th><th>Pago</th><th>Comercial</th><th>Logística</th><th>Utilidad est.</th><th>Acciones</th>
     </tr></thead><tbody>
-      {(orders ?? []).length===0?<tr><td colSpan={8} className="empty-cell">Aún no hay pedidos. Crea clientes, productos y luego tu primer pedido.</td></tr>:
+      {(orders ?? []).length===0?<tr><td colSpan={9} className="empty-cell">Aún no hay pedidos. Crea clientes, productos y luego tu primer pedido.</td></tr>:
       (orders ?? []).map((o:any)=>{
         const item=o.order_items?.[0];
         const profit=Number(o.total)-Number(o.supplier_cost)-Number(o.shipping_cost);
@@ -54,7 +56,7 @@ export default async function Page() {
               <select name="value" defaultValue={o.logistics_status}><option>Pendiente de compra</option><option>Comprado</option><option>En tránsito</option><option>Recibido</option><option>Listo para despacho</option><option>Despachado</option><option>Entregado</option></select>
             </ActionForm>
           </td>
-          <td className={profit>=0?"profit":"loss"}>{"$"+profit.toFixed(2)}</td>
+          <td className={profit>=0?"profit":"loss"}>{"$"+profit.toFixed(2)}</td><td><OrderEditor order={o} customers={customers??[]} suppliers={suppliers??[]}/><DeleteRecord table="orders" id={o.id} label={o.order_number} warning="Se eliminarán el pedido, sus productos y todos sus pagos. Se recalcularán las métricas y finanzas."/></td>
         </tr>
       })}
     </tbody></table></div></div>
