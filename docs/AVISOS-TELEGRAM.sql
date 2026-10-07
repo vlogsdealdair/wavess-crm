@@ -1,5 +1,5 @@
 
-create extension if not exists pg_net;
+create extension if not exists pg_net with schema extensions;
 create extension if not exists pg_cron;
 create schema if not exists wavess_private;
 revoke all on schema wavess_private from public,anon;
@@ -11,6 +11,7 @@ create table wavess_private.telegram_connections(
  chat_id text not null, chat_title text not null, enabled boolean not null default true
 );
 alter table wavess_private.telegram_connections enable row level security;
+create policy deny_direct_connection_access on wavess_private.telegram_connections for all to authenticated using(false) with check(false);
 create table public.dispatch_notifications(
  id uuid primary key default gen_random_uuid(), owner_id uuid not null references auth.users(id) on delete cascade,
  order_id uuid references public.orders(id) on delete cascade,
@@ -37,7 +38,7 @@ begin
  if not exists(select 1 from wavess_private.telegram_connections where owner_id=new.owner_id and enabled) then return new; end if;
  if new.commercial_status='Cancelado' or new.logistics_status in ('Despachado','Entregado') then return new; end if;
  if wavess_private.delivery_ready(new) then
- insert into public.dispatch_notifications(owner_id,order_id,event_key,kind) values(new.owner_id,new.id,new.id||':ready','ready') on conflict do nothing;
+ insert into public.dispatch_notifications(owner_id,order_id,event_key,kind) values(new.owner_id,new.id,new.id||':ready','ready') on conflict(owner_id,event_key) do update set status='pending' where dispatch_notifications.status='skipped';
  elsif new.total>0 and new.paid_amount>=new.total then
  insert into public.dispatch_notifications(owner_id,order_id,event_key,kind) values(new.owner_id,new.id,new.id||':paid','paid') on conflict do nothing;
  end if;
@@ -89,9 +90,9 @@ begin
  -- One reminder per order and local date, at or after 09:00 Ecuador.
  if (now() at time zone 'America/Guayaquil')::time>='09:00'::time then
  insert into public.dispatch_notifications(owner_id,order_id,event_key,kind)
- select o.owner_id,o.id,o.id||':reminder:'||(now() at time zone 'America/Guayaquil')::date,'reminder'
- from public.orders o join wavess_private.telegram_connections c on c.owner_id=o.owner_id and c.enabled
- where wavess_private.delivery_ready(o) and o.scheduled_ship_date<=(now() at time zone 'America/Guayaquil')::date
+ select ord.owner_id,ord.id,ord.id||':reminder:'||(now() at time zone 'America/Guayaquil')::date,'reminder'
+ from public.orders ord join wavess_private.telegram_connections c on c.owner_id=ord.owner_id and c.enabled
+ where wavess_private.delivery_ready(ord) and ord.scheduled_ship_date<=(now() at time zone 'America/Guayaquil')::date
  on conflict do nothing;
  end if;
  for n in select q.*,c.chat_id,c.secret_id from public.dispatch_notifications q join wavess_private.telegram_connections c using(owner_id)
