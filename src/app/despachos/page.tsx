@@ -1,3 +1,4 @@
+import {CustomerWhatsApp} from "@/components/customer-whatsapp";
 import {DeliveryFields} from "@/components/delivery-fields";
 import {AppShell} from "@/components/app-shell";
 import {ActionForm} from "@/components/action-form";
@@ -16,7 +17,7 @@ function missing(o:any){
 }
 export default async function Page({searchParams}:{searchParams:Promise<{estado?:string;ciudad?:string;tipo?:string}>}){
  const params=await searchParams;const s=await createClient();
- const {data,error}=await s.from("orders").select("id,order_number,payment_status,paid_amount,total,logistics_status,shipping_cost,delivery_sector,delivery_type,delivery_city,delivery_address,delivery_recipient,delivery_phone,delivery_notes,delivery_carrier,tracking_number,customers(full_name,whatsapp),order_items(product_name,size,quantity)").neq("commercial_status","Cancelado").order("created_at",{ascending:false});
+ const {data,error}=await s.from("orders").select("id,scheduled_ship_date,order_number,payment_status,paid_amount,total,logistics_status,shipping_cost,delivery_sector,delivery_type,delivery_city,delivery_address,delivery_recipient,delivery_phone,delivery_notes,delivery_carrier,tracking_number,customers(full_name,whatsapp),order_items(product_name,size,quantity)").neq("commercial_status","Cancelado").order("created_at",{ascending:false});
  if(error)throw new Error("No se pudieron cargar los despachos");
  const all=data??[];const classify=(o:any)=>o.logistics_status==="Entregado"?"entregados":o.logistics_status==="Despachado"?"enviados":!["Recibido","Listo para despacho"].includes(o.logistics_status)?"por-recibir":Number(o.paid_amount)<Number(o.total)||missing(o).length?"bloqueados":"listos";
  const state=params.estado??"pendientes";
@@ -33,7 +34,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{estado?
  {debt>0&&<p role="status">Saldo pendiente: {"$"+debt.toFixed(2)}. <Link href="/pagos">Registrar cobro</Link></p>}{gaps.length>0&&<p>Completar: {gaps.join(", ")}.</p>}
  <details><summary>Configurar entrega</summary><ActionForm key={JSON.stringify(o)} action={updateDelivery} className="popover-form inline-form" submitLabel="Guardar entrega">
  <input type="hidden" name="order_id" value={o.id}/><DeliveryFields order={o}/></ActionForm></details>
- <p className="shipping-cost">Costo de envío: {"$"+Number(o.shipping_cost).toFixed(2)}</p>{o.tracking_number&&<p>Guía: {o.tracking_number} · {o.delivery_carrier}</p>}{o.delivery_notes&&<p>{o.delivery_notes}</p>}
+ {o.scheduled_ship_date&&<p>Envío previsto: {o.scheduled_ship_date.split("-").reverse().join("/")}</p>}<CustomerWhatsApp order={o} ready={ready}/><p className="shipping-cost">Costo de envío: {"$"+Number(o.shipping_cost).toFixed(2)}</p>{o.tracking_number&&<p>Guía: {o.tracking_number} · {o.delivery_carrier}</p>}{o.delivery_notes&&<p>{o.delivery_notes}</p>}
  {ready&&<ActionForm action={dispatchOrder} submitLabel="Marcar despachado"><input type="hidden" name="order_id" value={o.id}/><input type="hidden" name="next_status" value="Despachado"/></ActionForm>}
  {o.logistics_status==="Despachado"&&debt===0&&gaps.length===0&&<ActionForm action={dispatchOrder} submitLabel="Confirmar entrega"><input type="hidden" name="order_id" value={o.id}/><input type="hidden" name="next_status" value="Entregado"/></ActionForm>}
  </article>;})}</section></AppShell>;

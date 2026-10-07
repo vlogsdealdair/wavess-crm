@@ -191,9 +191,10 @@ export async function deletePayment(fd:FormData){
 }
 export async function updateDelivery(fd:FormData){
  const {supabase,user}=await auth();const type=text(fd,"delivery_type");
+ const date=text(fd,"scheduled_ship_date");if(date&&(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date+"T12:00:00-05:00"))))throw new Error("Fecha de envío inválida");
  if(!["Local","Nacional","Retiro"].includes(type))throw new Error("Selecciona entrega cercana, a distancia o retiro");
  const {data,error}=await supabase.from("orders").update({
- delivery_sector:nullable(text(fd,"delivery_sector")),shipping_cost:money(fd,"shipping_cost"),delivery_type:type,delivery_city:nullable(text(fd,"delivery_city")),delivery_address:nullable(text(fd,"delivery_address")),
+ scheduled_ship_date:nullable(text(fd,"scheduled_ship_date")),delivery_sector:nullable(text(fd,"delivery_sector")),shipping_cost:money(fd,"shipping_cost"),delivery_type:type,delivery_city:nullable(text(fd,"delivery_city")),delivery_address:nullable(text(fd,"delivery_address")),
  delivery_recipient:nullable(text(fd,"delivery_recipient")),delivery_phone:nullable(text(fd,"delivery_phone")),
  delivery_notes:nullable(text(fd,"delivery_notes")),delivery_carrier:nullable(text(fd,"delivery_carrier")),tracking_number:nullable(text(fd,"tracking_number"))
  }).eq("id",text(fd,"order_id")).eq("owner_id",user.id).select("id").single();
