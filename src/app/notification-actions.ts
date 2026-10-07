@@ -22,6 +22,7 @@ export async function connectTelegram(fd:FormData){
  const s=await owner();const token=tokenOf(fd);const id=String(fd.get("chat_id")??"");
  if(!/^-[0-9]{1,20}$/.test(id))throw new Error("Detecta y selecciona un grupo");
  const chat=await telegram(token,"getChat",{chat_id:id});
+ if(chat.username)throw new Error("Usa un grupo privado para proteger los datos de tus clientes");
  if(!["group","supergroup"].includes(chat.type))throw new Error("Selecciona el grupo privado de tu equipo");
  const {error}=await s.rpc("connect_telegram",{p_token:token,p_chat_id:id,p_title:String(chat.title).slice(0,200)});
  if(error)throw new Error("No se pudo guardar la conexión. Intenta nuevamente.");

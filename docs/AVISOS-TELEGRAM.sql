@@ -10,6 +10,7 @@ create table wavess_private.telegram_connections(
  secret_id uuid not null references vault.secrets(id),
  chat_id text not null, chat_title text not null, enabled boolean not null default true
 );
+revoke all on wavess_private.telegram_connections from public,anon,authenticated;
 alter table wavess_private.telegram_connections enable row level security;
 create policy deny_direct_connection_access on wavess_private.telegram_connections for all to authenticated using(false) with check(false);
 create table public.dispatch_notifications(
@@ -21,6 +22,7 @@ create table public.dispatch_notifications(
  unique(owner_id,event_key)
 );
 alter table public.dispatch_notifications enable row level security;
+revoke all on public.dispatch_notifications from public,anon,authenticated;
 grant select on public.dispatch_notifications to authenticated;
 create policy own_notifications on public.dispatch_notifications for select to authenticated using((select auth.uid())=owner_id);
 create index notifications_pending on public.dispatch_notifications(status,created_at);
@@ -77,9 +79,10 @@ begin
  for n in select * from public.dispatch_notifications where status='sending' for update loop
  select * into resp from net._http_response where id=n.request_id;
  if found then
-  if resp.status_code=200 and resp.content::jsonb->>'ok'='true' then
+  begin payload:=resp.content::jsonb; exception when others then payload:=null; end;
+  if resp.status_code=200 and payload->>'ok'='true' then
    update public.dispatch_notifications set status='sent',sent_at=now() where id=n.id;
-  elsif resp.timed_out or resp.error_msg is not null or resp.status_code is null then
+  elsif resp.timed_out or resp.error_msg is not null or resp.status_code is null or payload is null then
    update public.dispatch_notifications set status='uncertain' where id=n.id;
   else update public.dispatch_notifications set status='failed' where id=n.id;
   end if;
