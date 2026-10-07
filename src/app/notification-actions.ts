@@ -19,7 +19,8 @@ export async function detectTelegram(_:TelegramDetection,fd:FormData):Promise<Te
  }catch(e){return {error:e instanceof Error?e.message:"No se pudo detectar el grupo",groups:[]};}
 }
 export async function connectTelegram(fd:FormData){
- const s=await owner();const token=tokenOf(fd);const id=String(fd.get("chat_id")??"");
+ const s=await owner();const token=tokenOf(fd);let id=String(fd.get("chat_id")??"");
+ if(!id){try{const url=new URL(String(fd.get("group_link")??""));if(url.hostname!=="web.telegram.org"||url.protocol!=="https:")throw new Error();id=url.hash.slice(1);}catch{throw new Error("Pega el enlace del grupo abierto en Telegram Web");}}
  if(!/^-[0-9]{1,20}$/.test(id))throw new Error("Detecta y selecciona un grupo");
  const chat=await telegram(token,"getChat",{chat_id:id});
  if(chat.username)throw new Error("Usa un grupo privado para proteger los datos de tus clientes");
